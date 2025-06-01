@@ -1,0 +1,30 @@
+/* Stili aggiuntivi per l'header */
+
+.settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  border: none;
+  margin-left: 10px;
+  text-decoration: none;
+}
+
+.settings-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: rotate(30deg);
+}
+
+.dark-theme .settings-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.fa-cog {
+  font-size: 1.2rem;
+}

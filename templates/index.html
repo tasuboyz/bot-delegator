@@ -1,0 +1,116 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steem & Hive Curation Interface</title>
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/header.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vote-counter.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vote-counter-dark.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vote-input-enhancements.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vote-input-decorations.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>      <div class="header-content">
+        <h1><i class="fas fa-robot"></i> Curation Manager</h1>
+        <div class="platform-toggle">
+          <button id="steemBtn" class="active">
+            <i class="fas fa-cube"></i> Steem
+          </button>
+          <button id="hiveBtn">
+            <i class="fas fa-hexagon"></i> Hive
+          </button>
+          <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+            <i class="fas fa-sun"></i>
+            <i class="fas fa-moon"></i>
+          </button>
+          <a href="/settings" class="settings-btn" title="Settings">
+            <i class="fas fa-cog"></i>
+          </a>
+        </div>
+        <div class="data-controls">
+          <button id="exportDataBtn" class="data-btn" title="Export Data">
+            <i class="fas fa-download"></i>
+          </button>
+          <button id="importDataBtn" class="data-btn" title="Import Data">
+            <i class="fas fa-upload"></i>
+          </button>
+          <button id="logDataBtn" class="data-btn" title="Log Data">
+            <i class="fas fa-terminal"></i>
+          </button>
+          <input type="file" id="importInput" accept=".json" style="display: none;">
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="add-user-section card">
+        <div class="section-header">
+          <i class="fas fa-user-plus"></i>
+          <h2>Add User to Watch</h2>
+        </div>
+        <form id="addUserForm">
+          <div class="input-group">
+            <i class="fas fa-at"></i>
+            <input type="text" id="username" placeholder="Enter username" required>
+          </div>
+          <div class="vote-settings">
+            <div class="setting">
+              <label for="voteDelay">
+                <i class="fas fa-clock"></i> Vote Delay (minutes):
+              </label>
+              <div class="delay-input-container">
+                <input type="number" id="voteDelay" min="0" step="0.1" value="5">
+                <div class="toggle-container">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="optimalTimeToggle">
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span class="toggle-label">Auto Optimal</span>
+                </div>
+              </div>
+            </div>            <div class="setting">
+              <label for="voteWeight">
+                <i class="fas fa-percentage"></i> Vote Weight:
+              </label>
+              <input type="number" id="voteWeight" min="1" max="100" value="100">
+            </div>            <div class="setting votes-per-day-setting">
+              <label for="votesPerDay">
+                <i class="fas fa-calendar-day"></i> Votes Per Day:
+              </label>
+              <input type="number" id="votesPerDay" min="1" max="10" value="1" placeholder="1-10" aria-label="Votes Per Day" title="Set how many times per day to vote for this author (1-10)">
+              <div class="votes-per-day-feedback">
+                Maximum number of votes per day for this author
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="primary-button">
+            <i class="fas fa-plus-circle"></i> Add User
+          </button>
+        </form>
+      </section>
+
+      <section class="users-list-section card">
+        <div class="section-header">
+          <i class="fas fa-users"></i>
+          <h2>Watched Users</h2>
+        </div>
+        <div class="users-list" id="usersList">
+          <!-- Users will be added here dynamically -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Script delle librerie blockchain -->
+  <script src="https://cdn.jsdelivr.net/npm/steem@0.7.11/dist/steem.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@hiveio/dhive@1.2.7/dist/dhive.min.js"></script>
+    <!-- Script principale dell'applicazione (con type="module" per supportare import/export) -->
+  <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/vote-tooltip.js') }}"></script>
+</body>
+</html>

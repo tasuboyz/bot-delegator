@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curation Manager - Settings</title>
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/header.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-content">
+        <h1><i class="fas fa-cog"></i> Curation Manager Settings</h1>
+        <div class="navigation">
+          <a href="/" class="nav-btn"><i class="fas fa-home"></i> Home</a>
+          <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+            <i class="fas fa-sun"></i>
+            <i class="fas fa-moon"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="card">
+        <div class="section-header">
+          <i class="fas fa-flask"></i>
+          <h2>Application Mode</h2>
+        </div>
+        <div class="form-content">
+          <div class="form-field">
+            <label for="testModeToggle">Test Mode:</label>
+            <div class="toggle-switch">
+              <input type="checkbox" id="testModeToggle" class="toggle-input">
+              <label for="testModeToggle" class="toggle-label"></label>
+            </div>
+          </div>
+          <p class="description">
+            In test mode, more detailed logs are enabled and some operations are simulated.
+            Disable test mode for production use.
+          </p>
+        </div>
+      </section>
+
+      <!-- STEEM Curator Settings -->
+      <section class="card">
+        <div class="section-header">
+          <i class="fas fa-cube"></i>
+          <h2>Steem Curator Settings</h2>
+        </div>
+        <form id="steemCuratorForm" class="form-content">
+          <div class="form-field">
+            <label for="steemUsername">Username:</label>
+            <input type="text" id="steemUsername" name="username" required>
+          </div>
+          <div class="form-field">
+            <label for="steemPostingKey">Posting Key:</label>
+            <div class="password-field">
+              <input type="password" id="steemPostingKey" name="posting_key">
+              <button type="button" class="toggle-visibility">
+                <i class="fas fa-eye"></i>
+                <i class="fas fa-eye-slash"></i>
+              </button>
+            </div>
+            <small class="key-status">
+              <span class="key-set">Key is set <i class="fas fa-check-circle"></i></span>
+              <span class="key-not-set">Key is not set <i class="fas fa-exclamation-circle"></i></span>
+            </small>
+          </div>
+          <div class="form-field">
+            <label for="steemActiveKey">Active Key (optional):</label>
+            <div class="password-field">
+              <input type="password" id="steemActiveKey" name="active_key">
+              <button type="button" class="toggle-visibility">
+                <i class="fas fa-eye"></i>
+                <i class="fas fa-eye-slash"></i>
+              </button>
+            </div>
+            <small class="key-status">
+              <span class="key-set">Key is set <i class="fas fa-check-circle"></i></span>
+              <span class="key-not-set">Key is not set <i class="fas fa-exclamation-circle"></i></span>
+            </small>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary-btn">
+              <i class="fas fa-save"></i> Save Steem Settings
+            </button>
+          </div>
+        </form>      </section>
+
+      <!-- HIVE Curator Settings -->
+      <section class="card">
+        <div class="section-header">
+          <i class="fas fa-hexagon"></i>
+          <h2>Hive Curator Settings</h2>
+        </div>
+        <form id="hiveCuratorForm" class="form-content">
+          <div class="form-field">
+            <label for="hiveUsername">Username:</label>
+            <input type="text" id="hiveUsername" name="username" required>
+          </div>
+          <div class="form-field">
+            <label for="hivePostingKey">Posting Key:</label>
+            <div class="password-field">
+              <input type="password" id="hivePostingKey" name="posting_key">
+              <button type="button" class="toggle-visibility">
+                <i class="fas fa-eye"></i>
+                <i class="fas fa-eye-slash"></i>
+              </button>
+            </div>
+            <small class="key-status">
+              <span class="key-set">Key is set <i class="fas fa-check-circle"></i></span>
+              <span class="key-not-set">Key is not set <i class="fas fa-exclamation-circle"></i></span>
+            </small>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary-btn">
+              <i class="fas fa-save"></i> Save Hive Settings
+            </button>
+          </div>
+        </form>
+      </section>
+      
+      <!-- Telegram Bot Settings -->
+      <section class="card">
+        <div class="section-header">
+          <i class="fab fa-telegram"></i>
+          <h2>Telegram Bot Settings</h2>
+        </div>
+        <form id="botSettingsForm" class="form-content">
+          <div class="form-field">
+            <label for="adminIds">Admin IDs (comma separated):</label>
+            <input type="text" id="adminIds" name="admin_ids" placeholder="1234567,7654321">
+            <small class="description">
+              Multiple admin IDs should be separated by comma without spaces.
+            </small>
+          </div>
+          <div class="form-field">
+            <label for="botToken">Bot Token:</label>
+            <div class="password-field">
+              <input type="password" id="botToken" name="bot_token" placeholder="123456789:ABCdefGHIjklMNOpqrSTUvwxYZ">
+              <button type="button" class="toggle-visibility">
+                <i class="fas fa-eye"></i>
+                <i class="fas fa-eye-slash"></i>
+              </button>
+            </div>
+            <small class="key-status">
+              <span class="key-set">Token is set <i class="fas fa-check-circle"></i></span>
+              <span class="key-not-set">Token is not set <i class="fas fa-exclamation-circle"></i></span>
+            </small>
+            <small class="description">
+              You can get a bot token from @BotFather on Telegram.
+            </small>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary-btn">
+              <i class="fas fa-save"></i> Save Bot Settings
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <div id="notification" class="notification">
+    <div class="notification-content">
+      <i class="notification-icon"></i>
+      <span class="notification-message"></span>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/modules/api.js') }}" type="module"></script>
+  <script src="{{ url_for('static', filename='js/settings.js') }}" type="module"></script>
+</body>
+</html>

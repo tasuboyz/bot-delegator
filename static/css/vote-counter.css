@@ -1,0 +1,206 @@
+/* Vote counter styles */
+
+/* Improved calendar icon styling */
+.user-info span i.fa-calendar-day {
+  color: var(--primary-color);
+  font-size: 1.1em;
+  margin-right: 4px;
+}
+
+/* Styling for vote counter info */
+.user-info span:has(i.fa-calendar-day) {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: inline-flex;
+  align-items: center;
+  margin: 5px 0;
+}
+
+/* Styling for when vote limit is reached */
+.vote-limit-reached {
+  color: var(--warning-color);
+  font-weight: bold;
+}
+
+/* Special styling for when vote limit is reached */
+.vote-limit-reached .vote-count-badge {
+  background-color: var(--warning-color);
+  color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Add a small indicator when limit is reached */
+.vote-limit-reached::after {
+  content: "Limit reached";
+  display: inline-block;
+  font-size: 0.7em;
+  background-color: var(--warning-color);
+  color: rgba(0, 0, 0, 0.8);
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 8px;
+  vertical-align: middle;
+  font-weight: 600;
+}
+
+/* Badge for vote counts - improved visibility */
+.vote-count-badge {
+  background-color: var(--secondary-color);
+  color: white;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 1em;
+  margin-left: 5px;
+  font-weight: 700;
+  display: inline-block;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+/* Add pulse animation for new votes */
+@keyframes pulse-highlight {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); background-color: var(--primary-color); }
+  100% { transform: scale(1); }
+}
+
+/* Animation when vote count changes */
+.vote-count-badge.updated {
+  animation: pulse-highlight 0.6s ease;
+}
+
+/* Hover effect for the badge */
+.vote-count-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Customization for votes per day field */
+.setting label[for="votesPerDay"],
+.setting label[for="editVotesPerDay"] {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 1.05em;
+  color: var(--text-color);
+  margin-bottom: 8px;
+}
+
+.setting label[for="votesPerDay"] i,
+.setting label[for="editVotesPerDay"] i {
+  color: var(--primary-color);
+  font-size: 1.1em;
+}
+
+.setting input[type="number"]#votesPerDay,
+.setting input[type="number"]#editVotesPerDay {
+  width: 80px;
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: 600;
+  padding: 10px;
+  border: 2px solid var(--secondary-color);
+  border-radius: 8px;
+  background-color: var(--card-background);
+  color: var(--primary-color);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.setting input[type="number"]#votesPerDay:focus,
+.setting input[type="number"]#editVotesPerDay:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.3);
+  outline: none;
+  transform: scale(1.05);
+}
+
+/* Remove spin buttons for a cleaner look */
+.setting input[type="number"]#votesPerDay::-webkit-inner-spin-button,
+.setting input[type="number"]#votesPerDay::-webkit-outer-spin-button,
+.setting input[type="number"]#editVotesPerDay::-webkit-inner-spin-button,
+.setting input[type="number"]#editVotesPerDay::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.setting input[type="number"]#votesPerDay[type=number],
+.setting input[type="number"]#editVotesPerDay[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.votes-per-day-feedback {
+  margin-top: 6px;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  background-color: rgba(74, 144, 226, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid var(--secondary-color);
+}
+
+/* Progress bar for daily votes */
+.votes-progress-container {
+  width: 100%;
+  height: 6px;
+  background-color: var(--border-color);
+  border-radius: 3px;
+  margin: 6px 0;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.votes-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  border-radius: 3px;
+  transition: width 0.5s ease, background-color 0.3s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient animation effect for the progress bar */
+@keyframes flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Apply animation to the progress bar */
+.votes-progress-bar:not(.limit-reached) {
+  background-size: 200% 200%;
+  animation: flow 3s ease infinite;
+}
+
+/* Warning style when limit is reached */
+.votes-progress-bar.limit-reached {
+  background: var(--warning-color);
+}
+
+/* Add markers to the progress bar */
+.votes-progress-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to right,
+    transparent,
+    transparent calc(20% - 1px),
+    rgba(255, 255, 255, 0.3) calc(20% - 1px),
+    rgba(255, 255, 255, 0.3) 20%
+  );
+  z-index: 1;
+  pointer-events: none;
+}

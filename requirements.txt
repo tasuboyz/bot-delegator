@@ -1,0 +1,8 @@
+flask
+flask_sqlalchemy
+beem
+requests
+python-dotenv
+schedule
+APScheduler
+aiohttp

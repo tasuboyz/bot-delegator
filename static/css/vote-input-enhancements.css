@@ -1,0 +1,86 @@
+/* Enhanced setting styles for votes per day input */
+.setting {
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+/* Special highlight for votes per day setting */
+.setting:has(label[for="votesPerDay"]),
+.setting:has(label[for="editVotesPerDay"]),
+.votes-per-day-setting {
+  background-color: rgba(74, 144, 226, 0.05);
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  padding: 16px;
+  margin-top: 10px;
+  margin-bottom: 16px;
+  animation: highlight-setting 1.2s ease-in-out;
+}
+
+/* Animation to draw attention to the setting */
+@keyframes highlight-setting {
+  0% { background-color: rgba(74, 144, 226, 0.3); }
+  50% { background-color: rgba(74, 144, 226, 0.15); }
+  100% { background-color: rgba(74, 144, 226, 0.05); }
+}
+
+/* Highlight on hover/focus */
+.setting:has(#votesPerDay:focus),
+.setting:has(#editVotesPerDay:focus) {
+  background-color: rgba(74, 144, 226, 0.1);
+  border-color: var(--secondary-color);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .setting:has(label[for="votesPerDay"]),
+[data-theme="dark"] .setting:has(label[for="editVotesPerDay"]) {
+  background-color: rgba(74, 144, 226, 0.1);
+  border-color: rgba(74, 144, 226, 0.3);
+}
+
+/* Add a helper icon for better visibility */
+.setting label[for="votesPerDay"]::after,
+.setting label[for="editVotesPerDay"]::after {
+  content: "❓";
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.85em;
+  opacity: 0.7;
+  cursor: help;
+}
+
+/* Tooltip for the helper icon */
+.setting label[for="votesPerDay"],
+.setting label[for="editVotesPerDay"] {
+  position: relative;
+}
+
+.setting label[for="votesPerDay"]:hover::before,
+.setting label[for="editVotesPerDay"]:hover::before {
+  content: "Controls how many times per day you can vote for this author";
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--secondary-color);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Add arrow to tooltip */
+.setting label[for="votesPerDay"]:hover::after,
+.setting label[for="editVotesPerDay"]:hover::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: var(--secondary-color) transparent transparent;
+}

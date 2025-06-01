@@ -1,0 +1,284 @@
+/* Stili specifici per la pagina delle impostazioni */
+.form-content {
+  padding: 1rem;
+}
+
+.form-field {
+  margin-bottom: 1.5rem;
+}
+
+.form-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-field input[type="text"],
+.form-field input[type="password"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-size: 1rem;
+}
+
+.form-field input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+}
+
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  flex: 1;
+  padding-right: 40px; /* Space for the eye icon */
+}
+
+.toggle-visibility {
+  position: absolute;
+  right: 5px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 5px;
+}
+
+.toggle-visibility:hover {
+  color: var(--text-color);
+}
+
+.toggle-visibility .fa-eye-slash {
+  display: none;
+}
+
+.password-field.visible .fa-eye {
+  display: none;
+}
+
+.password-field.visible .fa-eye-slash {
+  display: inline-block;
+}
+
+.form-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.primary-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.primary-btn:hover {
+  background-color: var(--primary-dark);
+}
+
+.description {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-label {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.toggle-label:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.toggle-input:checked + .toggle-label {
+  background-color: var(--primary-color);
+}
+
+.toggle-input:checked + .toggle-label:before {
+  transform: translateX(26px);
+}
+
+/* Key status indicators */
+.key-status {
+  margin-top: 0.3rem;
+  display: block;
+  font-size: 0.8rem;
+}
+
+.key-set {
+  color: #28a745;
+  display: none;
+}
+
+.key-not-set {
+  color: #dc3545;
+  display: none;
+}
+
+.key-status.is-set .key-set {
+  display: inline;
+}
+
+.key-status.not-set .key-not-set {
+  display: inline;
+}
+
+/* Notification styles */
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: var(--card-bg);
+  border-left: 4px solid;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 1rem;
+  border-radius: 4px;
+  transition: transform 0.3s, opacity 0.3s;
+  transform: translateX(120%);
+  opacity: 0;
+  z-index: 1000;
+  max-width: 350px;
+  display: flex;
+  align-items: center;
+}
+
+.notification.success {
+  border-left-color: #28a745;
+}
+
+.notification.error {
+  border-left-color: #dc3545;
+}
+
+.notification.info {
+  border-left-color: #17a2b8;
+}
+
+.notification.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+}
+
+.notification-icon {
+  margin-right: 10px;
+  font-size: 1.2rem;
+}
+
+.notification.success .notification-icon:before {
+  content: "\f058"; /* fa-check-circle */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  color: #28a745;
+}
+
+.notification.error .notification-icon:before {
+  content: "\f057"; /* fa-times-circle */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  color: #dc3545;
+}
+
+.notification.info .notification-icon:before {
+  content: "\f05a"; /* fa-info-circle */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  color: #17a2b8;
+}
+
+.notification-message {
+  color: var(--text-color);
+}
+
+/* Navigation */
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.nav-btn:hover {
+  background-color: var(--border-color);
+}
+
+/* Telegram Bot Settings Specific Styles */
+.form-field small.description {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+#botSettingsForm .form-field {
+  margin-bottom: 1.5rem;
+}
+
+#adminIds {
+  width: 100%;
+  padding: 0.5rem;
+}
+
+.fab.fa-telegram {
+  color: #0088cc; /* Telegram brand color */
+}

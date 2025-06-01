@@ -1,0 +1,96 @@
+/* Add decorative elements to highlight the votes per day input */
+.setting input[type="number"]#votesPerDay,
+.setting input[type="number"]#editVotesPerDay {
+  position: relative;
+}
+
+/* Add star decorations around the input on hover */
+.setting:has(#votesPerDay:hover)::before,
+.setting:has(#editVotesPerDay:hover)::before {
+  content: "⭐";
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2em;
+  z-index: 1;
+  animation: star-pulse 1.5s infinite alternate;
+}
+
+.setting:has(#votesPerDay:hover)::after,
+.setting:has(#editVotesPerDay:hover)::after {
+  content: "⭐";
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2em;
+  z-index: 1;
+  animation: star-pulse 1.5s infinite alternate;
+  animation-delay: 0.75s;
+}
+
+@keyframes star-pulse {
+  0% { opacity: 0.5; transform: translateY(-50%) scale(0.8); }
+  100% { opacity: 1; transform: translateY(-50%) scale(1.1); }
+}
+
+/* Add a prominent label "NEW" to draw attention */
+.votes-per-day-setting label::before {
+  content: "NEW";
+  display: inline-block;
+  background-color: var(--warning-color);
+  color: #000;
+  font-size: 0.65em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 8px;
+  font-weight: 700;
+  vertical-align: top;
+  letter-spacing: 0.5px;
+}
+
+/* Add helper text in the input */
+.setting input[type="number"]#votesPerDay::placeholder,
+.setting input[type="number"]#editVotesPerDay::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* Make sure the setting has position relative for absolute positioning of decorations */
+.votes-per-day-setting {
+  position: relative;
+}
+
+/* Custom tooltip styling */
+.votes-tooltip {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  width: max-content;
+  max-width: 250px;
+}
+
+.votes-tooltip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Add a small arrow */
+.votes-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 20px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--primary-color) transparent transparent;
+}

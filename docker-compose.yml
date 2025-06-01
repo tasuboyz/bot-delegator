@@ -1,0 +1,9 @@
+version: '3'
+services:
+  curator-bot:
+    build: .
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./instance:/home/khadas/Edge2/CuratorBot/instance
+    restart: unless-stopped
