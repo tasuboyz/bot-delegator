@@ -177,3 +177,23 @@ class UserService:
         except Exception as e:
             logger.error(f"Errore nell'eliminazione dell'utente {username}: {e}")
             return False
+    
+    @staticmethod
+    def clear_all_users(app=None):
+        """Elimina tutti gli utenti dal database."""
+        try:
+            ctx = UserService._ensure_app_context(app)
+            if ctx:
+                with ctx:
+                    num_deleted = User.query.delete()
+                    db.session.commit()
+                    logger.info(f"Eliminati {num_deleted} utenti dal database.")
+                    return True
+            else:
+                num_deleted = User.query.delete()
+                db.session.commit()
+                logger.info(f"Eliminati {num_deleted} utenti dal database.")
+                return True
+        except Exception as e:
+            logger.error(f"Errore durante la cancellazione di tutti gli utenti: {e}")
+            return False

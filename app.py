@@ -104,6 +104,16 @@ def get_all_users():
     user_list = [{'username': user.username, 'data': user.data} for user in users]
     return jsonify(user_list)
 
+@app.route('/users/clear', methods=['POST'])
+def clear_all_users():
+    """Elimina tutti gli utenti dal database."""
+    try:
+        UserService.clear_all_users()
+        return jsonify({'message': 'All users deleted successfully'})
+    except Exception as e:
+        logger.error(f"Errore durante la cancellazione di tutti gli utenti: {e}")
+        return jsonify({'error': str(e)}), 500
+
 # Routes per la gestione delle impostazioni
 @app.route('/api/settings', methods=['GET'])
 def get_all_settings():

@@ -99,6 +99,41 @@ class CurationApp {  constructor() {
         }
       }
     });
+    
+    // Pulsante per svuotare tutti gli utenti/autori
+    const clearUsersBtn = document.getElementById('clearUsersBtn');
+    if (clearUsersBtn) {
+      clearUsersBtn.addEventListener('click', () => {
+        if (confirm('Sei sicuro di voler eliminare TUTTI gli utenti/autori sia dal frontend che dal backend?')) {
+          this.clearAllUsers();
+        }
+      });
+    }
+    
+    // Esempio: intercetta il submit del form curatore (se presente)
+    const curatorForm = document.getElementById('steemCuratorForm');
+    if (curatorForm) {
+      curatorForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        // Raccogli dati dal form
+        const username = document.getElementById('steemUsername').value;
+        const postingKey = document.getElementById('steemPostingKey').value;
+        // Prepara payload
+        const payload = { platform: 'steem', username };
+        if (postingKey) payload.posting_key = postingKey;
+        // Chiamata API
+        const response = await apiService.sendRequest('/api/curator/update', 'POST', payload);
+        if (response && response.success) {
+          // Pulizia utenti e reload delegatori
+          await window.curationApp.handleCuratorChange(username);
+          // Ricarica delegatori del nuovo curatore
+          await window.curationApp.addAllDelegatorsAsUsers();
+          uiService.showStatus('Curatore aggiornato. Delegatori ricaricati!', 'success');
+        } else {
+          uiService.showStatus('Errore aggiornamento curatore', 'error');
+        }
+      });
+    }
   }
 
   /**
@@ -416,6 +451,27 @@ class CurationApp {  constructor() {
       apiSuccess ? 'User deleted successfully and synced with API!' : 'User deleted locally. API sync failed.',
       apiSuccess ? 'success' : 'info'
     );
+  }
+
+  /**
+   * Elimina tutti gli utenti sia dal frontend che dal backend
+   */
+  async clearAllUsers() {
+    // Svuota localStorage e memoria
+    storageService.clearUsers();
+    this.users = new Map();
+    this.renderUsersList();
+    // Svuota anche il backend
+    try {
+      const response = await apiService.sendRequest('/users/clear', 'POST');
+      if (response.success) {
+        uiService.showStatus('Tutti gli utenti eliminati dal backend e dal frontend!', 'success');
+      } else {
+        uiService.showStatus('Utenti eliminati localmente. Errore lato backend.', 'warning');
+      }
+    } catch (e) {
+      uiService.showStatus('Utenti eliminati localmente. Errore lato backend.', 'warning');
+    }
   }
 
   /**
