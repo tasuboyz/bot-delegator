@@ -285,7 +285,7 @@ class Blockchain:
                     raise Exception(response.reason)
                 
 ############################################################################################# Delegators
-    def get_steem_delegators(self, platform='steem'):
+    def get_steem_delegators(self, platform='steem', since_time=None):
         for node_url in self.node_urls.get(platform):
             if not self.ping_server(node_url):
                 logger.error(f"Server non raggiungibile: {node_url}")
@@ -302,12 +302,19 @@ class Blockchain:
                 all_delegate_ops = []
                 logger.info("Starting history fetch for delegations...")
 
-                while start_from > 0:
+                stop_scan = False
+                while start_from > 0 and not stop_scan:
                     stop_at = max(start_from - batch_size, 0)
                     logger.info(f"Fetching operations from {start_from} to {stop_at}...")
 
                     for h in acc.history(start=stop_at, stop=start_from, use_block_num=False):
                         if h['type'] == 'delegate_vesting_shares':
+                            # Se since_time è fornito, interrompi se l'operazione è più vecchia
+                            if since_time:
+                                op_time = datetime.strptime(h['timestamp'], '%Y-%m-%dT%H:%M:%S')
+                                if op_time <= since_time:
+                                    stop_scan = True
+                                    break
                             all_delegate_ops.append(h)
 
                     start_from -= batch_size

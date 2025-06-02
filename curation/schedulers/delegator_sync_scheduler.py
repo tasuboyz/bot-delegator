@@ -39,7 +39,7 @@ class DelegatorSyncScheduler:
             last_time = DelegatorCacheService.get_last_update_time()
             logger.info(f"Ultimo aggiornamento delegatori: {last_time}")
             # Recupera solo le operazioni più recenti dalla blockchain
-            ops = self.blockchain.get_steem_delegators(self.platform)
+            ops = self.blockchain.get_steem_delegators(self.platform, since_time=last_time)
             new_ops = [op for op in ops if datetime.strptime(op['timestamp'], '%Y-%m-%dT%H:%M:%S') > last_time]
             if new_ops:
                 DelegatorCacheService.bulk_save_or_update(new_ops)
