@@ -6,9 +6,12 @@ from curation.services.user_service import UserService
 from curation.services.settings_service import SettingsService
 from curation.components.beem import Blockchain
 from curation.utils.vote import VoteManager
+from curation.services.delegator_cache_service import DelegatorCacheService
 import signal
 import sys
 import os
+from threading import Thread
+from curation.schedulers.delegator_sync_scheduler import DelegatorSyncScheduler
 
 app = create_app()
 blockchain_connector = Blockchain(app=app)  # Istanza globale per la classe Blockchain
@@ -243,32 +246,26 @@ def update_bot_info():
 
 @app.route('/api/delegators/steem', methods=['GET'])
 def get_steem_delegators_api():
-    """Ottiene tutti i delegatori di Steem per il curatore configurato"""
+    """Ottiene tutti i delegatori di Steem dal database (aggiornato periodicamente dallo scheduler)"""
     try:
-        # Recupera i delegatori dalla blockchain
-        delegators = blockchain_connector.get_steem_delegators()
-        
-        # Formatta i dati per il frontend
+        delegators = DelegatorCacheService.get_all_delegators()
         formatted_delegators = []
         for op in delegators:
             formatted_delegators.append({
-                'delegator': op['delegator'],
-                'delegatee': op['delegatee'],
-                'sp_amount': op['converted_sp'],
-                'timestamp': op['timestamp'],
-                'vesting_shares': op['vesting_shares']['amount']
+                'delegator': op.username,
+                'delegatee': 'cur8',  # oppure recupera dinamicamente se serve
+                'sp_amount': float(op.vesting_shares),  # oppure salva il valore già convertito in SP
+                'timestamp': op.timestamp.isoformat() if op.timestamp else None,
+                'vesting_shares': op.vesting_shares
             })
-        
-        # Ordina per quantità delegata (SP) in ordine decrescente
         formatted_delegators.sort(key=lambda x: x['sp_amount'], reverse=True)
-        
         return jsonify({
             'delegators': formatted_delegators,
             'total': len(formatted_delegators),
             'status': 'success'
         })
     except Exception as e:
-        logger.error(f"Errore nel recupero dei delegatori Steem: {e}")
+        logger.error(f"Errore nel recupero dei delegatori Steem dal DB: {e}")
         return jsonify({
             'error': str(e),
             'status': 'error'
@@ -296,6 +293,10 @@ if __name__ == '__main__':
     if is_main_process:
         logger.info("Inizializzando i servizi nel processo principale...")
         init_services(app)
+
+        # Avvia lo scheduler delegatori Steem in un thread separato
+        delegator_scheduler = DelegatorSyncScheduler(app=app, platform='steem')
+        Thread(target=delegator_scheduler.run, daemon=True).start()
     else:
         logger.info("Processo secondario, saltando l'inizializzazione dei servizi")
     
