@@ -298,7 +298,7 @@ class Blockchain:
 
                 virtual_op = acc.virtual_op_count()
                 start_from = virtual_op  # Inizia dall'operazione più recente
-                batch_size = 100
+                batch_size = 10000
                 all_delegate_ops = []
                 logger.info("Starting history fetch for delegations...")
 
