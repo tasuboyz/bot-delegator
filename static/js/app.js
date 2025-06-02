@@ -892,34 +892,49 @@ class CurationApp {  constructor() {
   }
 
   /**
+   * Gestisce il cambio curatore: pulisce localStorage e ricarica utenti/delegatori
+   * @param {string} newCurator - Username del nuovo curatore
+   */
+  async handleCuratorChange(newCurator) {
+    // Pulisci utenti dal localStorage
+    storageService.clearUsers();
+    this.users = new Map();
+    // Aggiorna il curatore memorizzato
+    localStorage.setItem('curator_username', newCurator);
+    // Ricarica utenti dal backend
+    await this.loadSavedUsers();
+    uiService.showStatus('Curatore cambiato: dati locali aggiornati!', 'info', 4000);
+  }
+
+  /**
    * Aggiunge automaticamente tutti i delegatori come utenti da tracciare
    */
   async addAllDelegatorsAsUsers() {
     try {
-      // Mostra messaggio di caricamento
       uiService.showStatus('Importazione delegatori in corso...', 'info');
-      
       const response = await apiService.getSteemDelegators();
-      
       if (response.success && response.data.delegators) {
+        // --- GESTIONE CAMBIO CURATORE ---
+        const apiCurator = response.data.curator || null;
+        const storedCurator = localStorage.getItem('curator_username');
+        if (apiCurator && storedCurator && apiCurator !== storedCurator) {
+          await this.handleCuratorChange(apiCurator);
+          // Dopo il reset, interrompi per evitare doppio import
+          return;
+        } else if (apiCurator && !storedCurator) {
+          localStorage.setItem('curator_username', apiCurator);
+        }
+        // ...existing code...
         const delegators = response.data.delegators;
         let addedCount = 0;
         let skippedCount = 0;
-        
-        // Ordina i delegatori per importo SP decrescente
         delegators.sort((a, b) => b.sp_amount - a.sp_amount);
-        
-        // Aggiungi ciascun delegatore come utente
         for (const delegator of delegators) {
           const username = delegator.delegator;
-          
-          // Controlla se l'utente esiste già
           if (this.users.has(username)) {
             skippedCount++;
             continue;
           }
-          
-          // Crea un nuovo utente con impostazioni predefinite
           const userData = {
             username,
             platform: this.currentPlatform,
@@ -930,31 +945,20 @@ class CurationApp {  constructor() {
             timestamp: Date.now(),
             dailyVotesCount: 0,
             lastVoteDate: null,
-            sp_amount: delegator.sp_amount, // Aggiungi l'informazione sulla quantità delegata
-            is_delegator: true // Flag per indicare che è un delegatore
+            sp_amount: delegator.sp_amount,
+            is_delegator: true
           };
-          
-          // Aggiungi l'utente
           this.users.set(username, userData);
-          
-          // Sincronizza con l'API (in background)
           apiService.addUser(userData).catch(err => {
             console.warn(`Fallita sincronizzazione API per ${username}:`, err);
           });
-          
           addedCount++;
         }
-        
-        // Salva gli utenti nel localStorage
         storageService.saveUsers(this.users);
-        
-        // Aggiorna l'UI
         this.renderUsersList();
-        
-        // Mostra notifica di successo
         uiService.showStatus(
-          `Importati ${addedCount} delegatori${skippedCount > 0 ? `, ${skippedCount} già presenti` : ''}`, 
-          'success', 
+          `Importati ${addedCount} delegatori${skippedCount > 0 ? `, ${skippedCount} già presenti` : ''}`,
+          'success',
           5000
         );
       } else {

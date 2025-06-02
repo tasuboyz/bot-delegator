@@ -102,6 +102,19 @@ class StorageService {
       return { success: false, error };
     }
   }
+
+  /**
+   * Cancella tutti gli utenti dal localStorage
+   */
+  clearUsers() {
+    try {
+      localStorage.removeItem(this.USERS_KEY);
+      return true;
+    } catch (error) {
+      console.error('Error clearing users from localStorage:', error);
+      return false;
+    }
+  }
 }
 
 // Esporta un'istanza singleton

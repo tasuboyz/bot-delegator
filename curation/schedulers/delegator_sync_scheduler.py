@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from curation.components.logger_config import logger
 from curation.components.beem import Blockchain
 from curation.services.delegator_cache_service import DelegatorCacheService
+from curation.components.db import Settings
 
 SYNC_INTERVAL_MINUTES = 10  # Ogni 10 minuti
 
@@ -30,6 +31,27 @@ class DelegatorSyncScheduler:
     def sync_delegators(self):
         logger.info(f"[DelegatorSyncScheduler] Avvio sync delegators per {self.platform}")
         db_delegators = DelegatorCacheService.get_all_delegators()
+        # Recupera il curatore attuale
+        curator_info = self.blockchain.get_curator_info(self.platform)
+        current_curator = curator_info['username']
+        # Recupera il curatore usato nell'ultimo sync dal DB Settings
+        last_synced_setting = Settings.query.filter_by(key=f'{self.platform}_curator_last_synced').first()
+        last_synced_curator = last_synced_setting.value if last_synced_setting else None
+
+        if last_synced_curator != current_curator:
+            logger.info(f"Cambio curatore rilevato: {last_synced_curator} -> {current_curator}. Pulizia delegatori DB.")
+            DelegatorCacheService.clear_all()
+            # Aggiorna il curatore nel DB Settings
+            if last_synced_setting:
+                last_synced_setting.value = current_curator
+            else:
+                new_setting = Settings(key=f'{self.platform}_curator_last_synced', value=current_curator)
+                from curation.components.db import db
+                db.session.add(new_setting)
+            from curation.components.db import db
+            db.session.commit()
+            db_delegators = []  # Forza sync completo
+
         if not db_delegators:
             logger.info("Nessun delegator nel DB, recupero completo dalla blockchain...")
             ops = self.blockchain.get_steem_delegators(self.platform)

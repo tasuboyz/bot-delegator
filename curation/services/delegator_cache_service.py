@@ -22,13 +22,13 @@ class DelegatorCacheService:
         if not delegator:
             delegator = Delegator(
                 username=op['delegator'],
-                vesting_shares=op['vesting_shares']['amount'],
+                vesting_shares=op['converted_sp'],
                 last_operation_id=op.get('_id'),
                 timestamp=datetime.strptime(op['timestamp'], '%Y-%m-%dT%H:%M:%S')
             )
             db.session.add(delegator)
         else:
-            delegator.vesting_shares = op['vesting_shares']['amount']
+            delegator.vesting_shares = op['converted_sp']
             delegator.last_operation_id = op.get('_id')
             delegator.timestamp = datetime.strptime(op['timestamp'], '%Y-%m-%dT%H:%M:%S')
         db.session.commit()

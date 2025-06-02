@@ -259,9 +259,14 @@ def get_steem_delegators_api():
                 'vesting_shares': op.vesting_shares
             })
         formatted_delegators.sort(key=lambda x: x['sp_amount'], reverse=True)
+        # Recupera il curatore attuale
+        from curation.components.beem import Blockchain
+        curator_info = Blockchain().get_curator_info('steem')
+        curator_username = curator_info.get('username', None)
         return jsonify({
             'delegators': formatted_delegators,
             'total': len(formatted_delegators),
+            'curator': curator_username,
             'status': 'success'
         })
     except Exception as e:
