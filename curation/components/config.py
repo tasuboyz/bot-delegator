@@ -34,7 +34,7 @@ admin_id = "1026795763"
 TOKEN = ""
 
 # Valori predefiniti che verranno sostituiti dalle impostazioni nel database
-steem_curator = "tasuboyz"
+steem_curator = "sunnydog"
 steem_curator_posting_key = ""  # Per sicurezza, non definiamo più chiavi hardcoded
 hive_curator = "menny.trx"
 hive_curator_posting_key = ""  # Per sicurezza, non definiamo più chiavi hardcoded

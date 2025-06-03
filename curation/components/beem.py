@@ -293,7 +293,7 @@ class Blockchain:
             logger.info(f"Trying node: {node_url}")
             try:
                 stm = Steem(node=node_url)
-                curator_info = self.get_curator_info(platform)
+                curator_info = self.get_curator_info(platform)                
                 acc = Account(curator_info['username'], blockchain_instance=stm)
 
                 virtual_op = acc.virtual_op_count()
@@ -302,21 +302,48 @@ class Blockchain:
                 all_delegate_ops = []
                 logger.info("Starting history fetch for delegations...")
 
-                stop_scan = False
-                while start_from > 0 and not stop_scan:
+                consecutive_old_batches = 0
+                max_consecutive_old_batches = 3  # Massimo 3 batch consecutivi senza operazioni recenti
+                
+                while start_from > 0:
                     stop_at = max(start_from - batch_size, 0)
                     logger.info(f"Fetching operations from {start_from} to {stop_at}...")
-
-                    for h in acc.history(start=stop_at, stop=start_from, use_block_num=False):
+                    
+                    batch_found_recent = False
+                    batch_operations = []
+                    
+                    # Raccoglie tutte le operazioni del batch
+                    for h in acc.history_reverse(start=start_from, stop=stop_at, use_block_num=False):
                         if h['type'] == 'delegate_vesting_shares':
-                            # Se since_time è fornito, interrompi se l'operazione è più vecchia
-                            if since_time:
-                                op_time = datetime.strptime(h['timestamp'], '%Y-%m-%dT%H:%M:%S')
-                                if op_time <= since_time:
-                                    stop_scan = True
-                                    break
-                            all_delegate_ops.append(h)
-
+                            batch_operations.append(h)
+                    
+                    # Processa le operazioni del batch (sono in ordine cronologico crescente)
+                    for op in batch_operations:
+                        if since_time:
+                            op_time = datetime.strptime(op['timestamp'], '%Y-%m-%dT%H:%M:%S')
+                            if op_time > since_time:
+                                # Operazione recente, la includiamo
+                                all_delegate_ops.append(op)
+                                batch_found_recent = True
+                            # Se l'operazione è più vecchia di since_time, la saltiamo
+                        else:
+                            # Se non c'è filtro temporale, include tutte le operazioni
+                            all_delegate_ops.append(op)
+                            batch_found_recent = True
+                    
+                    # Controlla se dobbiamo interrompere la scansione
+                    if since_time:
+                        if batch_found_recent:
+                            consecutive_old_batches = 0  # Reset del contatore
+                        else:
+                            consecutive_old_batches += 1
+                            logger.info(f"Batch senza operazioni recenti: {consecutive_old_batches}/{max_consecutive_old_batches}")
+                            
+                            # Se abbiamo trovato troppi batch consecutivi senza operazioni recenti, fermiamoci
+                            if consecutive_old_batches >= max_consecutive_old_batches:
+                                logger.info("Raggiunti troppi batch consecutivi senza operazioni recenti. Interruzione scansione.")
+                                break
+                        
                     start_from -= batch_size
 
                 # Ordina per timestamp decrescente

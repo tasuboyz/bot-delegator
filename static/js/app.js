@@ -15,6 +15,7 @@ import storageService from './modules/storage.js';
 class CurationApp {  constructor() {
     this.currentPlatform = 'steem';
     this.users = new Map();
+    this.autoUpdateInterval = null; // Per gestire l'aggiornamento automatico
     
     // Configura gli event listeners quando il DOM è caricato
     document.addEventListener('DOMContentLoaded', () => {
@@ -26,6 +27,9 @@ class CurationApp {  constructor() {
         setTimeout(() => {
           this.addAllDelegatorsAsUsers();
         }, 2000); // Attendiamo 2 secondi per assicurarci che tutto sia pronto
+        
+        // Avvia l'aggiornamento automatico periodico
+        this.startAutoUpdate();
       });
       
       this.initializeTheme();
@@ -99,13 +103,48 @@ class CurationApp {  constructor() {
         }
       }
     });
-    
-    // Pulsante per svuotare tutti gli utenti/autori
+      // Pulsante per svuotare tutti gli utenti/autori
     const clearUsersBtn = document.getElementById('clearUsersBtn');
     if (clearUsersBtn) {
       clearUsersBtn.addEventListener('click', () => {
         if (confirm('Sei sicuro di voler eliminare TUTTI gli utenti/autori sia dal frontend che dal backend?')) {
           this.clearAllUsers();
+        }
+      });
+    }
+    
+    // Pulsante per caricare i delegatori
+    const loadDelegatorsBtn = document.getElementById('loadDelegatorsBtn');
+    if (loadDelegatorsBtn) {
+      loadDelegatorsBtn.addEventListener('click', () => {
+        this.addAllDelegatorsAsUsers();
+      });
+    }
+    
+    // Pulsante per aggiornare i delegatori forzando il refresh dal backend
+    const refreshDelegatorsBtn = document.getElementById('refreshDelegatorsBtn');
+    if (refreshDelegatorsBtn) {
+      refreshDelegatorsBtn.addEventListener('click', async () => {
+        try {
+          uiService.showStatus('Aggiornamento delegatori dal backend...', 'info');
+          
+          // Forza il refresh completo dei delegatori dal backend
+          const refreshResponse = await fetch('/api/delegators/force-refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          const refreshData = await refreshResponse.json();
+          
+          if (refreshData.success) {
+            uiService.showStatus('Delegatori aggiornati dal backend!', 'success', 2000);
+            // Ricarica i delegatori nell'interfaccia
+            setTimeout(() => this.addAllDelegatorsAsUsers(), 1000);
+          } else {
+            throw new Error(refreshData.error || 'Errore sconosciuto');
+          }
+        } catch (error) {
+          console.error('Errore durante refresh delegatori:', error);
+          uiService.showStatus(`Errore aggiornamento delegatori: ${error.message}`, 'error');
         }
       });
     }
@@ -964,18 +1003,44 @@ class CurationApp {  constructor() {
 
   /**
    * Aggiunge automaticamente tutti i delegatori come utenti da tracciare
-   */
-  async addAllDelegatorsAsUsers() {
+   */  async addAllDelegatorsAsUsers() {
     try {
       uiService.showStatus('Importazione delegatori in corso...', 'info');
       const response = await apiService.getSteemDelegators();
-      if (response.success && response.data.delegators) {
-        // --- GESTIONE CAMBIO CURATORE ---
+      if (response.success && response.data.delegators) {        // --- GESTIONE CAMBIO CURATORE ---
         const apiCurator = response.data.curator || null;
         const storedCurator = localStorage.getItem('curator_username');
         if (apiCurator && storedCurator && apiCurator !== storedCurator) {
-          await this.handleCuratorChange(apiCurator);
-          // Dopo il reset, interrompi per evitare doppio import
+          uiService.showStatus('Rilevato cambio curatore! Pulizia dati in corso...', 'warning', 3000);
+          
+          // Pulizia completa del backend e frontend
+          await this.clearAllUsers();
+          
+          // Forza il refresh completo dei delegatori dal backend
+          try {
+            uiService.showStatus('Aggiornamento delegatori dal backend...', 'info');
+            const refreshResponse = await fetch('/api/delegators/force-refresh', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            const refreshData = await refreshResponse.json();
+            if (!refreshData.success) {
+              console.warn('Force refresh fallito:', refreshData.error);
+            }
+          } catch (error) {
+            console.warn('Errore durante force refresh:', error);
+          }
+          
+          // Aggiorna il curatore memorizzato
+          localStorage.setItem('curator_username', apiCurator);
+          
+          // Aspetta un momento per permettere la pulizia completa
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          uiService.showStatus('Dati puliti! Caricamento delegatori nuovo curatore...', 'info', 2000);
+          
+          // Richiama la funzione per caricare i nuovi delegatori
+          setTimeout(() => this.addAllDelegatorsAsUsers(), 2000);
           return;
         } else if (apiCurator && !storedCurator) {
           localStorage.setItem('curator_username', apiCurator);
@@ -1000,8 +1065,8 @@ class CurationApp {  constructor() {
             useOptimalTime: true,
             timestamp: Date.now(),
             dailyVotesCount: 0,
-            lastVoteDate: null,
-            sp_amount: delegator.sp_amount,
+            lastVoteDate: null,            sp_amount: delegator.sp_amount,
+            score: delegator.score || 0,
             is_delegator: true
           };
           this.users.set(username, userData);
@@ -1020,8 +1085,35 @@ class CurationApp {  constructor() {
       } else {
         throw new Error('Dati delegatori non disponibili');
       }
-    } catch (error) {
-      uiService.showStatus(`Errore nell'importazione dei delegatori: ${error.message}`, 'error');
+    } catch (error) {      uiService.showStatus(`Errore nell'importazione dei delegatori: ${error.message}`, 'error');
+    }
+  }
+
+  /**
+   * Avvia l'aggiornamento automatico periodico dei delegatori
+   */
+  startAutoUpdate() {
+    // Aggiorna ogni 5 minuti (300000 ms)
+    this.autoUpdateInterval = setInterval(async () => {
+      try {
+        console.log('Auto-update: controllo nuovi delegatori...');
+        await this.addAllDelegatorsAsUsers();
+      } catch (error) {
+        console.warn('Auto-update failed:', error);
+      }
+    }, 300000); // 5 minuti
+    
+    console.log('Auto-update started: checking for new delegators every 5 minutes');
+  }
+
+  /**
+   * Ferma l'aggiornamento automatico periodico
+   */
+  stopAutoUpdate() {
+    if (this.autoUpdateInterval) {
+      clearInterval(this.autoUpdateInterval);
+      this.autoUpdateInterval = null;
+      console.log('Auto-update stopped');
     }
   }
 }

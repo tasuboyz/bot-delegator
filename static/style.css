@@ -126,6 +126,31 @@ button {
   transform: translateY(-1px);
 }
 
+.secondary-button {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  border: 2px solid var(--primary-color);
+}
+
+.secondary-button:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.delegator-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  justify-content: flex-start;
+}
+
+.delegator-controls button {
+  flex: 0 0 auto;
+  min-width: 150px;
+  font-size: 0.9rem;
+}
+
 button.active {
   background-color: var(--primary-color);
   color: white;

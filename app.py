@@ -108,11 +108,38 @@ def get_all_users():
 def clear_all_users():
     """Elimina tutti gli utenti dal database."""
     try:
-        UserService.clear_all_users()
-        return jsonify({'message': 'All users deleted successfully'})
+        success = UserService.clear_all_users(app=app)
+        if success:
+            return jsonify({'success': True, 'message': 'All users deleted successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to clear users'}), 500
     except Exception as e:
         logger.error(f"Errore durante la cancellazione di tutti gli utenti: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/delegators/force-refresh', methods=['POST'])
+def force_refresh_delegators():
+    """Forza l'aggiornamento dei delegatori dalla blockchain"""
+    try:
+        # Questo endpoint può essere usato per forzare un refresh completo
+        from curation.services.delegator_cache_service import DelegatorCacheService
+        from curation.components.beem import Blockchain
+        
+        # Pulisci la cache esistente
+        DelegatorCacheService.clear_all()
+        
+        # Recupera delegatori freschi
+        blockchain = Blockchain(app=app)
+        ops = blockchain.get_steem_delegators('steem')
+        DelegatorCacheService.bulk_save_or_update(ops)
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Delegators refreshed successfully. Found {len(ops)} delegators.'
+        })
+    except Exception as e:
+        logger.error(f"Error forcing delegators refresh: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # Routes per la gestione delle impostazioni
 @app.route('/api/settings', methods=['GET'])
@@ -257,22 +284,42 @@ def update_bot_info():
 @app.route('/api/delegators/steem', methods=['GET'])
 def get_steem_delegators_api():
     """Ottiene tutti i delegatori di Steem dal database (aggiornato periodicamente dallo scheduler)"""
+    def get_score(sp, cur_vp):
+        score = (sp / 150000) * 100
+        if cur_vp is not None and cur_vp >= 0:
+            score = score * cur_vp / 100
+        score = min(score, 99)
+        score = max(score, 0.01)
+        return round(score, 2)
+
     try:
         delegators = DelegatorCacheService.get_all_delegators()
         formatted_delegators = []
+        # Recupera il curatore attuale e il suo voting power
+        from curation.components.beem import Blockchain
+        blockchain = Blockchain()
+        curator_info = blockchain.get_curator_info('steem')
+        curator_username = curator_info.get('username', None)
+        cur_vp = None
+        if curator_username:
+            try:
+                cur_vp = blockchain.get_account_info(curator_username).get('voting_power', None)
+                if isinstance(cur_vp, str):
+                    cur_vp = float(cur_vp)
+            except Exception:
+                cur_vp = None
         for op in delegators:
+            sp = float(op.vesting_shares)
+            score = get_score(sp, cur_vp)
             formatted_delegators.append({
                 'delegator': op.username,
-                'delegatee': 'cur8',  # oppure recupera dinamicamente se serve
-                'sp_amount': float(op.vesting_shares),  # oppure salva il valore già convertito in SP
+                'delegatee': 'cur8',
+                'sp_amount': sp,
                 'timestamp': op.timestamp.isoformat() if op.timestamp else None,
-                'vesting_shares': op.vesting_shares
+                'vesting_shares': op.vesting_shares,
+                'score': score
             })
         formatted_delegators.sort(key=lambda x: x['sp_amount'], reverse=True)
-        # Recupera il curatore attuale
-        from curation.components.beem import Blockchain
-        curator_info = Blockchain().get_curator_info('steem')
-        curator_username = curator_info.get('username', None)
         return jsonify({
             'delegators': formatted_delegators,
             'total': len(formatted_delegators),
