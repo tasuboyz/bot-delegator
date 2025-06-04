@@ -807,8 +807,18 @@ class Blockchain:
     def get_votes_today(self, curator, author, platform):
         """
         Conta quanti voti il curatore ha dato all'autore nelle ultime 24 ore.
+        Usa history_reverse per efficienza: si ferma appena trova una operazione troppo vecchia.
         """
         try:
+            cache_key = f"{curator}_{author}_{platform}_votes_today"
+            now = datetime.now()
+            if hasattr(self, '_local_cache') and cache_key in self._local_cache:
+                cached = self._local_cache[cache_key]
+                if (now - cached['timestamp']).seconds < 180:
+                    return cached['count']
+            else:
+                if not hasattr(self, '_local_cache'):
+                    self._local_cache = {}
             # Scegli la blockchain corretta
             if platform == "steem":
                 for node_url in self.node_urls.get('steem'):
@@ -828,35 +838,33 @@ class Blockchain:
                     logger.error("Nessun nodo Hive disponibile")
                     return 0
                 account = Account(curator, blockchain_instance=hive)
-
-            now = datetime.now(timezone.utc)
-            since = now - timedelta(days=1)
-            votes = 0            # Scorri la history dei voti del curatore
-            for vote in account.get_account_votes():
-                # vote['author'], vote['time']
-                vote_time = vote.get('time')
-                # Gestisce diversi formati di data o None
-                if vote_time is None:
-                    continue  # Salta questo voto se non c'è timestamp
-                    
-                if isinstance(vote_time, str):
-                    try:
-                        vote_time = datetime.strptime(vote_time, '%Y-%m-%dT%H:%M:%S')
-                        vote_time = vote_time.replace(tzinfo=timezone.utc)
-                    except ValueError:
-                        # Prova un formato alternativo se il primo fallisce
+            since = datetime.now(timezone.utc) - timedelta(days=1)
+            votes = 0
+            virtual_op = account.virtual_op_count()
+            batch_size = 500
+            start_from = virtual_op
+            stop = 0
+            for op in account.history_reverse(start=start_from, stop=stop, use_block_num=False):
+                if op['type'] == 'vote' and op.get('author') == author:
+                    vote_time = op.get('timestamp')
+                    if vote_time is None:
+                        continue
+                    if isinstance(vote_time, str):
                         try:
-                            vote_time = datetime.fromisoformat(vote_time.replace('Z', '+00:00'))
-                        except (ValueError, AttributeError):
-                            logger.debug(f"Impossibile analizzare il timestamp: {vote_time}")
-                            continue  # Salta questo voto
-                
-                # Assicurati che vote_time abbia un timezone
-                if vote_time.tzinfo is None:
-                    vote_time = vote_time.replace(tzinfo=timezone.utc)
-                    
-                if vote.get('author') == author and vote_time > since:
-                    votes += 1
+                            vote_time = datetime.strptime(vote_time, '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone.utc)
+                        except ValueError:
+                            try:
+                                vote_time = datetime.fromisoformat(vote_time.replace('Z', '+00:00'))
+                            except Exception:
+                                continue
+                    if vote_time.tzinfo is None:
+                        vote_time = vote_time.replace(tzinfo=timezone.utc)
+                    if vote_time > since:
+                        votes += 1
+                    else:
+                        # Appena trovi una operazione troppo vecchia, puoi fermarti
+                        break
+            self._local_cache[cache_key] = {'timestamp': now, 'count': votes}
             return votes
         except Exception as e:
             logger.error(f"Errore in get_votes_today: {e}")
