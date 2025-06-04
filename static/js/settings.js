@@ -13,6 +13,9 @@ class SettingsManager {
     this.testModeToggle = document.getElementById('testModeToggle');
     this.themeToggle = document.getElementById('themeToggle');
     this.notification = document.getElementById('notification');
+    this.delegationThresholdsForm = document.getElementById('delegationThresholdsForm');
+    this.delegationMinSp = document.getElementById('delegationMinSp');
+    this.delegationMaxSp = document.getElementById('delegationMaxSp');
     
     // Imposta il tema iniziale
     this.updateTheme();
@@ -44,6 +47,11 @@ class SettingsManager {
     document.querySelectorAll('.toggle-visibility').forEach(btn => {
       btn.addEventListener('click', e => this.togglePasswordVisibility(e.currentTarget));
     });
+    
+    // Event listener per le soglie di delega
+    if (this.delegationThresholdsForm) {
+      this.delegationThresholdsForm.addEventListener('submit', e => this.handleDelegationThresholdsSubmit(e));
+    }
   }
     async loadSettings() {
     try {
@@ -112,6 +120,16 @@ class SettingsManager {
           botTokenStatus.classList.add('not-set');
           botTokenStatus.classList.remove('is-set');
         }
+      }
+      
+      // Carica soglie delega
+      const minSpResp = await apiService.sendRequest('/api/settings/delegation_min_sp', 'GET');
+      if (minSpResp.success && minSpResp.data.delegation_min_sp !== undefined) {
+        this.delegationMinSp.value = minSpResp.data.delegation_min_sp;
+      }
+      const maxSpResp = await apiService.sendRequest('/api/settings/delegation_max_sp', 'GET');
+      if (maxSpResp.success && maxSpResp.data.delegation_max_sp !== undefined) {
+        this.delegationMaxSp.value = maxSpResp.data.delegation_max_sp;
       }
     } catch (error) {
       this.showNotification('Errore nel caricamento delle impostazioni', 'error');
@@ -204,6 +222,28 @@ class SettingsManager {
     } catch (error) {
       this.showNotification('Errore nella comunicazione con il server', 'error');
       console.error('Error updating Hive settings:', error);
+    }
+  }
+  
+  async handleDelegationThresholdsSubmit(e) {
+    e.preventDefault();
+    const minSp = parseFloat(this.delegationMinSp.value);
+    const maxSp = parseFloat(this.delegationMaxSp.value) || null;
+    try {
+      const minResp = await apiService.sendRequest('/api/settings/delegation_min_sp', 'POST', { value: minSp });
+      let maxOk = true;
+      if (maxSp !== null && !isNaN(maxSp)) {
+        const maxResp = await apiService.sendRequest('/api/settings/delegation_max_sp', 'POST', { value: maxSp });
+        maxOk = maxResp.success;
+      }
+      if (minResp.success && maxOk) {
+        this.showNotification('Soglie delega salvate con successo', 'success');
+      } else {
+        this.showNotification('Errore nel salvataggio delle soglie delega', 'error');
+      }
+    } catch (error) {
+      this.showNotification('Errore nella comunicazione con il server', 'error');
+      console.error('Error updating delegation thresholds:', error);
     }
   }
   

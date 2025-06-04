@@ -355,6 +355,17 @@ class Blockchain:
                     if delegator not in latest_ops:
                         latest_ops[delegator] = op
 
+                min_sp = SettingsService.get_setting('delegation_min_sp')
+                max_sp = SettingsService.get_setting('delegation_max_sp')
+                try:
+                    min_sp = float(min_sp) if min_sp is not None else 0
+                except Exception:
+                    min_sp = 0
+                try:
+                    max_sp = float(max_sp) if max_sp not in (None, '', 'null') else None
+                except Exception:
+                    max_sp = None
+
                 processed_ops = []
                 for op in latest_ops.values():
                     shares = op['vesting_shares']['amount']
@@ -363,6 +374,11 @@ class Blockchain:
                     # Procedi solo se le shares sono maggiori di 0
                     if shares_float > 0:
                         converted_sp = stm.vests_to_sp(shares_float)
+                        # FILTRO: solo deleghe tra min_sp e max_sp
+                        if converted_sp < min_sp:
+                            continue
+                        if max_sp is not None and converted_sp > max_sp:
+                            continue
                         op['converted_sp'] = converted_sp
                         processed_ops.append(op)
                 return processed_ops
