@@ -25,7 +25,7 @@ RUN openssl version -d && \
 ENV OPENSSL_CONF=/etc/ssl/openssl.cnf
 
 # Imposta la directory di lavoro
-WORKDIR /home/khadas/Edge2/CuratorBot
+WORKDIR /home/khadas/Edge2/bot-delegator
 
 # Copia il file requirements.txt e installa le dipendenze
 COPY requirements.txt .
